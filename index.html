@@ -12,6 +12,7 @@ body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Sans JP","Y
 .wrap{max-width:1280px;margin:0 auto;padding:12px 16px 48px}
 h1{font-size:clamp(20px,3.4vw,30px);margin:6px 0 2px}
 .lead{color:var(--sub);margin:0 0 10px;font-size:14px}
+.stage:fullscreen{border-radius:0;border:0;background:#000}
 .stage{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}
@@ -36,18 +37,20 @@ a{color:var(--cyan)}
 ul{padding-left:1.2em;margin:6px 0}
 li{margin:3px 0}
 small{color:var(--sub)}
-@media (max-width:640px){button{padding:8px 10px;font-size:14px}table{font-size:13px}}
+@media (max-width:640px){#hint{display:block!important}input[type=range]{height:36px}button{padding:8px 10px;font-size:14px}table{font-size:13px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 <h1>人口の光 ― 石川県が全国1位だった頃</h1>
 <p class="lead">江戸中期(1721)から現在(2025)まで、府県の人口を光で描きます。光の大きさは、その年の全国人口に占める割合です。</p>
-<div class="stage"><canvas id="cv" width="1920" height="1080" aria-label="人口の光の動画"></canvas></div>
+<p class="lead" id="hint" style="display:none">スマホでは「拡大表示」を押して横向きにすると、字が読みやすくなります。</p>
+<div class="stage" id="stage"><canvas id="cv" width="1920" height="1080" aria-label="人口の光の動画"></canvas></div>
 <div class="bar">
   <button id="play" aria-pressed="false">再生</button>
   <input id="sl" type="range" min="0" max="32" step="0.02" value="0" aria-label="時間">
   <span class="tl" id="yl">1721年</span>
+  <button id="fs" aria-label="拡大表示">拡大表示</button>
 </div>
 <div class="bar seg" role="group" aria-label="見え方の切替">
   <span class="tl">地図の単位:</span>
@@ -379,6 +382,7 @@ function draw(){render(sec);sl.value=sec;const y=yearOf(sec);yl.textContent=dy(y
 function tick(ts){if(playing){const dt=(ts-last)/1000;last=ts;sec+=dt*speed;if(sec>=32){sec=32;playing=false;pb.textContent='再生';pb.setAttribute('aria-pressed','false');}draw();}requestAnimationFrame(tick);}
 pb.onclick=()=>{if(sec>=32)sec=0;playing=!playing;last=performance.now();pb.textContent=playing?'一時停止':'再生';pb.setAttribute('aria-pressed',playing);};
 sl.oninput=()=>{sec=+sl.value;draw();};
+document.getElementById('fs').onclick=()=>{const st=document.getElementById('stage');try{if(document.fullscreenElement)document.exitFullscreen();else (st.requestFullscreen||st.webkitRequestFullscreen).call(st);}catch(e){}};
 document.getElementById('spd').onchange=e=>{speed=+e.target.value;};
 document.querySelectorAll('.m').forEach(b=>b.onclick=()=>{mode=b.dataset.m;document.querySelectorAll('.m').forEach(x=>x.setAttribute('aria-pressed',x===b));draw();});
 document.querySelectorAll('.j').forEach(b=>b.onclick=()=>{sec=+b.dataset.s;playing=false;pb.textContent='再生';draw();});
@@ -392,7 +396,7 @@ document.querySelectorAll('.j').forEach(b=>b.onclick=()=>{sec=+b.dataset.s;playi
   el.innerHTML=
   '<ul>'+
   '<li><b>県域の広さ</b> 1877年1月の石川県は、1876年に編入された越中(旧新川県)と越前(嶺北7郡)を含んでいました。1876年1月の石川県 '+fmt(ish76)+'人 + 新川県 '+fmt(sk76)+'人 = '+fmt(ish76+sk76)+'人。1877年の石川県 '+fmt(ish77)+'人との差 約'+fmt(echizen)+'人が越前分と考えられます<span class="est">(推定・差し引き)</span>。</li>'+
-  '<li><b>人口の厚み</b> 1872年の戸籍人口で、加賀・能登・越中の3国は合計 '+fmt(kaga.three)+'人、これに越前を加えると '+fmt(kaga.four)+'人です。この4国が1つの県になった結果が、1877年の '+fmt(ish77)+'人に近い値です。加賀藩は幕末の領内人口が約'+fmt(1086159)+'人(1870年)で、100万人を超えていた唯一の藩とされます(『加賀藩史料』『石川県史』を引く二次資料による)。</li>'+
+  '<li><b>人口の厚み</b> 1872年の戸籍人口で、加賀・能登・越中の3国は合計 '+fmt(kaga.three)+'人、これに越前を加えると '+fmt(kaga.four)+'人です。この4国が1つの県になった結果が、1877年の '+fmt(ish77)+'人に近い値です。加賀藩は幕末(1870年)の領内人口が約109万人(1,086,159人)で、100万人を超えていた唯一の藩とされます(『加賀藩史料』『石川県史』を引く二次資料による)。</li>'+
   '<li><b>北陸の割合</b> 北陸道7か国は、旧国別人口で全国の '+kaga.hok1846+'%(1846年)から '+kaga.hok1872+'%(1872年)でした。比べる調査の方法が違うため、差の大小は断定できません。</li>'+
   '<li><b>現在の県境では1位ではない</b> 同じ数字を現在の県境に換算すると、1877〜81年の首位は新潟県です<span class="est">(推定)</span>。石川県の「1位」は、当時の県域が広かったことの影響が大きいと考えられます。</li>'+
   '<li><b>期間</b> 年初の統計で石川県が1位なのは1877〜1881年の5回です。1881年2月に福井県が分離して県域が縮み、1882年の年初は5位('+fmt(I82)+'人)でした。富山県の分離は1883年5月です。</li>'+
