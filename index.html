@@ -268,7 +268,7 @@ function render(sec,M){
   // pillars + strong glow for #1
   tops.sort((p,q)=>q.rk-p.rk);
   for(const t of tops){
-    const h=46+t.R*1.9+(6-t.rk)*16,w=5+t.R*.1;
+    const h=Math.min(46+t.R*1.9+(6-t.rk)*16,t.y-78),w=5+t.R*.1;
     const gr=ctx.createLinearGradient(0,t.y,0,t.y-h);gr.addColorStop(0,'rgba(255,201,74,.85)');gr.addColorStop(1,'rgba(255,201,74,0)');
     ctx.fillStyle=gr;ctx.fillRect(t.x-w/2,t.y-h,w,h);
     t.h=h;
